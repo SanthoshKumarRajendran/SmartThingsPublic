@@ -51,9 +51,8 @@ def updated() {
 
 def initialize() {
 	// Initialize Room Occupancy variable (is Map the best datastructure to use here ?)
-    state.roomOccupancies = []
-
-    log.debug "Setting : $settings"
+    state.roomsOccupancyStatus = [:]
+    motionSensors.each{state.roomsOccupancyStatus[it] = false}
     
 	// Subscribe to all the selected motion sensors
 	subscribe(motionSensors, "motion", motionHandler)
@@ -75,7 +74,7 @@ def motionActiveHandler(evt) {
     def triggerDevice = motionSensors.find{it.id == triggerDeviceId}
 
     log.debug "Motion detected by $triggerDevice. Setting occupancy to True"
-    // state.roomOccupancies['$triggerDevice'] = True
+    state.roomsOccupancyStatus['$triggerDevice'] = true
 }
 
 def motionInactiveHandler(evt) {
@@ -108,7 +107,7 @@ def checkMotion(triggerDeviceId) {
         
         if (elapsed >= inActivityTime) {
             log.debug "Motion has stayed inactive long enough since last check ($elapsed s): Setting room occupancy to False"
-            // state.roomOccupancies['$triggerDevice'] = True
+            state.roomsOccupancyStatus['$triggerDevice'] = false
         } else {
             log.debug "Motion has not stayed inactive long enough since last check ($elapsed s): Doing nothing"
         }
