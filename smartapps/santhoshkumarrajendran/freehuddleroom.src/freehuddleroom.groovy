@@ -71,7 +71,6 @@ def initialize() {
     state.roomsOccupancyStatus = [:]
     motionSensors.each{
         state.roomsOccupancyStatus[ "${it.displayName}" ] = false
-        log.debug "$state"
     }
     
 	// Subscribe to all the selected motion sensors
@@ -95,8 +94,6 @@ def motionActiveHandler(evt) {
 
     log.debug "Motion detected by $triggerDevice. Setting occupancy to True"
     state.roomsOccupancyStatus[ "${triggerDevice.displayName}" ] = true
-
-    log.debug "$state"
 }
 
 def motionInactiveHandler(evt) {
@@ -129,9 +126,7 @@ def checkMotion(triggerDeviceId) {
         
         if (elapsed >= inActivityTime) {
             log.debug "Motion has stayed inactive long enough since last check ($elapsed s): Setting room occupancy to False"
-            state.roomsOccupancyStatus[ "${triggerDevice.displayName}" ] = false
-            
-            log.debug "$state"
+            state.roomsOccupancyStatus[ "${triggerDevice.displayName}" ] = false            
         } else {
             log.debug "Motion has not stayed inactive long enough since last check ($elapsed s): Doing nothing"
         }
