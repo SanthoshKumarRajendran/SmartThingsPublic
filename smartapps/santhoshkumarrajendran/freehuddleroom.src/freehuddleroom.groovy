@@ -23,6 +23,23 @@ definition(
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
+// Expose API Endpoints
+mappings {
+  path("/roomOccupancyStatus") {
+    action: [
+      GET: "getRoomOccupancyStatus"
+    ]
+  }
+}
+
+// API Methods
+def getRoomOccupancyStatus(){
+	def response = []
+    state.roomsOccupancyStatus.each { key, val ->
+      response << [name: key, value: val]
+    }
+    return response
+}
 
 preferences {
 	// Motion Sensor Settings
@@ -52,7 +69,10 @@ def updated() {
 def initialize() {
 	// Initialize Room Occupancy variable (is Map the best datastructure to use here ?)
     state.roomsOccupancyStatus = [:]
-    motionSensors.each{state.roomsOccupancyStatus[it] = false}
+    motionSensors.each{
+        state.roomsOccupancyStatus[ "${it.displayName}" ] = false
+        log.debug "$state"
+    }
     
 	// Subscribe to all the selected motion sensors
 	subscribe(motionSensors, "motion", motionHandler)
@@ -74,7 +94,9 @@ def motionActiveHandler(evt) {
     def triggerDevice = motionSensors.find{it.id == triggerDeviceId}
 
     log.debug "Motion detected by $triggerDevice. Setting occupancy to True"
-    state.roomsOccupancyStatus['$triggerDevice'] = true
+    state.roomsOccupancyStatus[ "${triggerDevice.displayName}" ] = true
+
+    log.debug "$state"
 }
 
 def motionInactiveHandler(evt) {
@@ -107,7 +129,9 @@ def checkMotion(triggerDeviceId) {
         
         if (elapsed >= inActivityTime) {
             log.debug "Motion has stayed inactive long enough since last check ($elapsed s): Setting room occupancy to False"
-            state.roomsOccupancyStatus['$triggerDevice'] = false
+            state.roomsOccupancyStatus[ "${triggerDevice.displayName}" ] = false
+            
+            log.debug "$state"
         } else {
             log.debug "Motion has not stayed inactive long enough since last check ($elapsed s): Doing nothing"
         }
